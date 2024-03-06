@@ -17,7 +17,7 @@ export default class Navbar extends Component {
 
   render() {
     return (
-      <nav className="bg-red-500 py-2 text-white">
+      <nav className="bg-red-500 py-2 text-white sticky top-0 z-10">
         <div className="container mx-auto flex flex-wrap items-center justify-between px-4 md:justify-center lg:justify-between">
           <h1 className="text-3xl">News Monkey</h1>
           <button

@@ -9,7 +9,6 @@ export default class News extends Component {
     this.state = {
       loading: true,
       articles: [],
-      category: props.category,
       pageSize: 10,
       page: 1,
       totalResults: 0,
@@ -37,7 +36,7 @@ export default class News extends Component {
   };
 
   showData = async () => {
-    let url = `https://newsapi.org/v2/top-headlines?apiKey=be1581cd0e9447b3a6c388fa496db91e&country=us&category=${this.state.category}&pageSize=${this.state.pageSize}&page=${this.state.page}`;
+    let url = `https://newsapi.org/v2/top-headlines?apiKey=${import.meta.env.VITE_API_KEY}&country=us&category=${this.props.category}&pageSize=${this.state.pageSize}&page=${this.state.page}`;
     let data = await fetch(url);
     let parsedData = await data.json();
     this.setState({
