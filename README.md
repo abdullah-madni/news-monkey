@@ -1,5 +1,5 @@
-This is version 1 of NewsMonkey app.
+This is version 2 of NewsMonkey app.
 
-features
+key features
 * infinite scroll
 * top loading bar
