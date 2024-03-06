@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import NewsItem from "./NewsItem";
-import Pagination from "./Pagination";
 import Preloader from "./Preloader";
+import InfiniteScroll from "react-infinite-scroll-component";
 
 export default class News extends Component {
   constructor(props) {
@@ -9,41 +9,35 @@ export default class News extends Component {
     this.state = {
       loading: true,
       articles: [],
-      category: props.category,
       pageSize: 10,
       page: 1,
       totalResults: 0,
     };
-    document.title = `NewsMonkey - ${props.category} news`
+    document.title = `NewsMonkey - ${props.category} news`;
   }
 
   async componentDidMount() {
-    this.goToPage(this.state.page);
-  }
-
-  handlePageNext = () => {
-    this.goToPage(this.state.page + 1);
-  };
-
-  handlePagePrev = () => {
-    this.goToPage(this.state.page - 1);
-  };
-
-  goToPage = (page) => {
-    this.setState({
-        page: page,
-        loading: true,
-    },this.showData);
-  };
-
-  showData = async () => {
-    let url = `https://newsapi.org/v2/top-headlines?apiKey=be1581cd0e9447b3a6c388fa496db91e&country=us&category=${this.state.category}&pageSize=${this.state.pageSize}&page=${this.state.page}`;
+    this.props.setProgress(10);
+    let url = `https://newsapi.org/v2/top-headlines?apiKey=${this.props.apikey}&country=us&category=${this.props.category}&pageSize=${this.state.pageSize}&page=${this.state.page}`;
     let data = await fetch(url);
     let parsedData = await data.json();
+    this.props.setProgress(40);
     this.setState({
       articles: parsedData.articles,
       totalResults: parsedData.totalResults,
       loading: false,
+    }, ()=>{
+      this.props.setProgress(100);
+    });
+  }
+
+  fetchMore = async () => {
+    let url = `https://newsapi.org/v2/top-headlines?apiKey=${this.props.apikey}&country=us&category=${this.props.category}&pageSize=${this.state.pageSize}&page=${this.state.page + 1}`;
+    let data = await fetch(url);
+    let parsedData = await data.json();
+    this.setState({
+      articles: this.state.articles.concat(parsedData.articles),
+      page: this.state.page + 1,
     });
   };
 
@@ -58,33 +52,38 @@ export default class News extends Component {
             <Preloader />
           </div>
         )}
-        <div className="mb-6 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {!this.state.loading &&
-            this.state.articles.map((item, index) => {
-              return (
-                <NewsItem
-                  title={item.title}
-                  description={item.description}
-                  urlToImage={item.urlToImage}
-                  url={item.url}
-                  author={item.author}
-                  source={item.source.name}
-                  publishedAt={item.publishedAt}
-                  key={index}
-                />
-              );
-            })}
-        </div>
-        <div className="mb-2">
-          <Pagination
-            handlePageNext={this.handlePageNext}
-            handlePagePrev={this.handlePagePrev}
-            goToPage={this.goToPage}
-            page={this.state.page}
-            pageSize={this.state.pageSize}
-            totalResults={this.state.totalResults}
-          />
-        </div>
+
+        {!this.state.loading && (
+          <InfiniteScroll
+            dataLength={this.state.articles.length}
+            next={this.fetchMore}
+            hasMore={this.state.articles.length != this.state.totalResults}
+            loader={<Preloader />}
+            style={{overflow: 'visible'}}
+            endMessage={
+              <p className="text-center font-medium text-gray-500">
+                No more results there.
+              </p>
+            }
+          >
+            <div className="mb-4 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+              {this.state.articles.map((item, index) => {
+                return (
+                  <NewsItem
+                    title={item.title}
+                    description={item.description}
+                    urlToImage={item.urlToImage}
+                    url={item.url}
+                    author={item.author}
+                    source={item.source.name}
+                    publishedAt={item.publishedAt}
+                    key={index}
+                  />
+                );
+              })}
+            </div>
+          </InfiniteScroll>
+        )}
       </div>
     );
   }
